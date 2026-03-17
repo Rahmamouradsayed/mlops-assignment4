@@ -1,3 +1,4 @@
+# .github/workflows/ml-pipeline.yml
 name: ML Model CI
 
 on:
@@ -9,7 +10,6 @@ on:
 jobs:
   validate-and-test:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -23,7 +23,9 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Linter Check
-        run: echo "Linter step placeholder"
+        run: |
+          pip install flake8
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 
       - name: Model Dry Test
         run: |
