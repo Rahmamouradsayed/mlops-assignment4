@@ -2,17 +2,14 @@ name: Resource-Efficient CI/CD with Gatekeeper
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
 
 jobs:
-
   linter:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Lint
+      - uses: actions/checkout@v4
+      - name: Run linter
         run: echo "lint passed"
 
   train:
@@ -20,17 +17,18 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[run-train]')
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Train
-        run: echo "training success"
+        run: |
+          echo "start training"
+          exit 1
 
-      - name: Upload logs on failure
+      - name: Generate logs
         if: failure()
-        run: echo "error" > error_logs.txt
+        run: echo "training failed" > error_logs.txt
 
-      - name: Upload artifact
+      - name: Upload logs
         if: failure()
         uses: actions/upload-artifact@v4
         with:
