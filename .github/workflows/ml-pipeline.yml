@@ -2,60 +2,54 @@ name: Resource-Efficient CI/CD with Gatekeeper
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
   pull_request:
     branches: [ main ]
 
 jobs:
+
   linter:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Run linter
         run: |
           echo "Running lightweight linter..."
-          echo "Linter passed successfully"
+          echo "No issues found!"
 
   train:
-    needs: [linter]
+    needs: linter
     runs-on: ubuntu-latest
-    if: |
-      github.ref == 'refs/heads/main' && 
-      contains(github.event.head_commit.message)
-    
+
+    if: >
+      github.ref == 'refs/heads/main' &&
+      contains(github.event.head_commit.message, '[run-train]') &&
+      needs.linter.result == 'success'
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
-      - name: Setup GPU environment
-        run: echo "GPU environment ready"
-      
-      - name: Run training
-        id: training
+
+      - name: Simulate Training Job
         run: |
-          echo "Starting expensive training..."
-          echo "Training completed"
-      
-      - name: Generate error logs on failure
+          echo "Starting expensive GPU training..."
+          echo "Training model..."
+          exit 0
+
+      - name: Generate Error Logs
         if: failure()
         run: |
-          echo "Training failed" > error_logs.txt
-          echo "Timestamp: $(date)" >> error_logs.txt
-          echo "Branch: ${{ github.ref_name }}" >> error_logs.txt
-      
-      - name: Upload error logs
+          echo "Training failed. Collecting logs..." > error_logs.txt
+
+      - name: Upload Error Logs Artifact
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: error_logs
+          name: error-logs
           path: error_logs.txt
 
-  cleanup:
-    needs: [linter, train]
-    runs-on: ubuntu-latest
-    if: always()
-    steps:
-      - name: Cleanup
+      - name: Cleanup Resources
+        if: always()
         run: echo "Cleaning up temporary cloud volumes..."
