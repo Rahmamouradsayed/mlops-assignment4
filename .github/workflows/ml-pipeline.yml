@@ -36,7 +36,7 @@ jobs:
         run: |
           echo "Starting expensive GPU training..."
           echo "Training model..."
-          exit 0
+          exit 1
 
       - name: Generate Error Logs
         if: failure()
